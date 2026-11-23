@@ -36,6 +36,11 @@ CSRF_TRUSTED_ORIGINS = [
     'http://localhost:8000',
 ]
 
+# Konfigurasi Reverse Proxy SSL untuk Vercel Serverless
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+USE_X_FORWARDED_HOST = True
+USE_X_FORWARDED_PORT = True
+
 # Application definition
 
 INSTALLED_APPS = [
