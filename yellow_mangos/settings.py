@@ -30,6 +30,12 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['127.0.0.1', 'localhost', 'testserver', '.vercel.app', '*']
 
+CSRF_TRUSTED_ORIGINS = [
+    'https://*.vercel.app',
+    'http://127.0.0.1:8000',
+    'http://localhost:8000',
+]
+
 # Application definition
 
 INSTALLED_APPS = [
@@ -99,10 +105,19 @@ if _db_url:
         'default': dj_database_url.config(default=_db_url, conn_max_age=600)
     }
 elif _db_engine == "sqlite" or (_db_engine != "mysql" and not _is_mysql_running(os.getenv('DB_HOST', 'localhost'), os.getenv('DB_PORT', 3306))):
+    sqlite_db_path = BASE_DIR / 'db.sqlite3'
+    # Pada environment serverless Vercel, direktori root read-only sehingga gunakan /tmp
+    if os.getenv('VERCEL') == '1':
+        import shutil
+        tmp_db = Path('/tmp/db.sqlite3')
+        if not tmp_db.exists() and sqlite_db_path.exists():
+            shutil.copy2(sqlite_db_path, tmp_db)
+        sqlite_db_path = tmp_db
+
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
+            'NAME': sqlite_db_path,
         }
     }
 else:
@@ -158,7 +173,7 @@ USE_TZ = True
 STATIC_URL = 'static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
 
 
 # Email
