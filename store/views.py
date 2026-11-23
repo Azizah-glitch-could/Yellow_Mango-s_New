@@ -736,10 +736,10 @@ def custom_login_view(request):
                     return redirect(next_url)
                 return redirect('index')
         else:
-            # Login: cek username langsung atau via email
+            # Login: cek username langsung atau via email (case-insensitive)
             target_username = identifier
             if '@' in identifier:
-                found_user = User.objects.filter(email=identifier).first()
+                found_user = User.objects.filter(email__iexact=identifier).first()
                 if found_user:
                     target_username = found_user.username
 

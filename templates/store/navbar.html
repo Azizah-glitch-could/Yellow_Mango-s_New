@@ -463,7 +463,7 @@
                 </div>
             </div>
             {% else %}
-            <a href="{% url 'login' %}" class="ym-guest-login-btn">
+            <a href="{% url 'login' %}?next={{ request.get_full_path|urlencode }}" class="ym-guest-login-btn">
                 <i class='bx bx-user' style="font-size: 1.1rem;"></i>
                 <span>Masuk / Daftar</span>
             </a>
