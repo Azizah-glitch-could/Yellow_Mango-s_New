@@ -140,6 +140,13 @@ else:
 LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = '/'
 
+# Session Management: Gunakan signed_cookies agar session (keranjang belanja & login)
+# disimpan terenkripsi di browser dan tidak hilang saat request berganti container serverless di Vercel
+SESSION_ENGINE = 'django.contrib.sessions.backends.signed_cookies'
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SAMESITE = 'Lax'
+SESSION_COOKIE_AGE = 1209600  # 14 hari
+
 
 # Password validation
 # https://docs.djangoproject.com/en/6.1/ref/settings/#auth-password-validators
