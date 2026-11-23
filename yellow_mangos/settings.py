@@ -36,6 +36,10 @@ CSRF_TRUSTED_ORIGINS = [
     'http://localhost:8000',
 ]
 
+CSRF_FAILURE_VIEW = 'store.views.csrf_failure_view'
+CSRF_COOKIE_HTTPONLY = False
+CSRF_COOKIE_SAMESITE = 'Lax'
+
 # Konfigurasi Reverse Proxy SSL untuk Vercel Serverless
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 USE_X_FORWARDED_HOST = True
@@ -59,6 +63,7 @@ MIDDLEWARE = [
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
+    'store.middleware.ServerlessSyncMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -115,8 +120,12 @@ elif _db_engine == "sqlite" or (_db_engine != "mysql" and not _is_mysql_running(
     if os.getenv('VERCEL') == '1':
         import shutil
         tmp_db = Path('/tmp/db.sqlite3')
-        if not tmp_db.exists() and sqlite_db_path.exists():
-            shutil.copy2(sqlite_db_path, tmp_db)
+        if sqlite_db_path.exists():
+            if not tmp_db.exists() or sqlite_db_path.stat().st_size != tmp_db.stat().st_size:
+                try:
+                    shutil.copy2(sqlite_db_path, tmp_db)
+                except Exception:
+                    pass
         sqlite_db_path = tmp_db
 
     DATABASES = {

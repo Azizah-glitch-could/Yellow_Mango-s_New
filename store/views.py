@@ -34,6 +34,17 @@ from .models import (
     ActivityLog,
     UserProfile,
 )
+from .middleware import save_user_session_backup, restore_order_from_backup
+
+
+def csrf_failure_view(request, reason=""):
+    """
+    Penanganan kegagalan CSRF yang ramah pengguna.
+    Mengalihkan kembali ke halaman asal dengan pesan ramah agar pengguna tidak terblokir layar 403.
+    """
+    messages.warning(request, "Sesi keamanan formulir Anda telah disegarkan. Silakan coba kembali.")
+    next_url = request.path or '/'
+    return redirect(next_url)
 
 
 # ==========================================
@@ -244,8 +255,7 @@ def add_to_cart(request, product_id):
         })
 
     messages.success(request, f"'{product.name}' ({size}) berhasil dimasukkan ke keranjang belanja!")
-    next_url = request.META.get('HTTP_REFERER') or '/cart/'
-    return redirect(next_url)
+    return redirect('cart')
 
 
 def update_cart(request, item_key):
@@ -487,6 +497,27 @@ def checkout_view(request):
         payment_method = request.POST.get('payment_method', 'midtrans')
         request.session['cart'] = {}
         request.session['last_order_number'] = order.order_number
+        request.session['last_order_backup'] = {
+            'order_number': order.order_number,
+            'customer_id': request.user.id if request.user.is_authenticated else None,
+            'customer_name': customer_name,
+            'customer_phone': customer_phone,
+            'notes': ' | '.join(note_parts),
+            'total_amount': int(subtotal),
+            'status': order.status,
+            'payment_status': order.payment_status,
+            'payment_type': payment_method,
+            'midtrans_token': getattr(order, 'midtrans_token', ''),
+            'items': [
+                {
+                    'product_id': item.get('product_id'),
+                    'name': item.get('name', 'Menu'),
+                    'price': int(item.get('price', 0)),
+                    'quantity': int(item.get('quantity', 1)),
+                }
+                for item in cart.values()
+            ],
+        }
         request.session.modified = True
 
         if payment_method == 'cod':
@@ -513,7 +544,11 @@ def checkout_view(request):
 
 
 def order_payment_view(request, order_number):
-    order = get_object_or_404(Order, order_number=order_number)
+    order = Order.objects.filter(order_number=order_number).first()
+    if not order:
+        order = restore_order_from_backup(request, order_number)
+    if not order:
+        return HttpResponse('Pesanan tidak ditemukan.', status=404)
     if not (request.user.is_authenticated and order.customer_id == request.user.id) and request.session.get('last_order_number') != order.order_number:
         return HttpResponse('Pesanan tidak ditemukan.', status=404)
     if order.payment_status == 'PAID':
@@ -625,7 +660,11 @@ def midtrans_notification_view(request):
 
 
 def order_success_view(request, order_number):
-    order = get_object_or_404(Order, order_number=order_number)
+    order = Order.objects.filter(order_number=order_number).first()
+    if not order:
+        order = restore_order_from_backup(request, order_number)
+    if not order:
+        return HttpResponse('Pesanan tidak ditemukan.', status=404)
     if not (request.user.is_authenticated and order.customer_id == request.user.id) and request.session.get('last_order_number') != order.order_number:
         return HttpResponse('Pesanan tidak ditemukan.', status=404)
 
@@ -728,6 +767,7 @@ def custom_login_view(request):
                 if phone:
                     UserProfile.objects.get_or_create(user=user, defaults={'phone': phone})
                 login(request, user)
+                save_user_session_backup(request, user)
                 ActivityLog.objects.create(
                     user=user,
                     action=f"Pendaftaran akun pelanggan baru: {user.username}",
@@ -748,6 +788,7 @@ def custom_login_view(request):
             user = authenticate(request, username=target_username, password=password)
             if user is not None:
                 login(request, user)
+                save_user_session_backup(request, user)
                 messages.success(request, f"Halo, {user.first_name or user.username}! Anda berhasil masuk.")
                 if (user.is_staff or user.is_superuser) and next_url in ('index', '/', ''):
                     return redirect('admin_dashboard')
@@ -881,6 +922,7 @@ def google_login_callback_view(request):
 
     # Login pengguna
     login(request, user, backend='django.contrib.auth.backends.ModelBackend')
+    save_user_session_backup(request, user)
 
     ActivityLog.objects.create(
         user=user,

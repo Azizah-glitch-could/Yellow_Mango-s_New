@@ -357,18 +357,16 @@
                 <span>Garansi 100% buah mangga pilihan segar & higienis.</span>
             </div>
 
-            {% if request.user.is_authenticated %}
             <a href="{% url 'checkout' %}" class="btn-checkout-now">
                 <i class='bx bxs-check-shield' style="font-size: 1.25rem;"></i>
                 <span>Lanjut ke Checkout</span>
+                {% if not request.user.is_authenticated %}
+                <i class='bx bx-right-arrow-alt' style="font-size: 1.25rem; margin-left: 4px;"></i>
+                {% endif %}
             </a>
-            {% else %}
-            <a href="{% url 'login' %}?next={% url 'checkout' %}" class="btn-checkout-now">
-                <i class='bx bx-log-in-circle' style="font-size: 1.25rem;"></i>
-                <span>Masuk / Daftar untuk Checkout</span>
-            </a>
+            {% if not request.user.is_authenticated %}
             <p style="text-align: center; font-size: 0.82rem; color: #64748B; margin-top: 8px;">
-                <i class='bx bx-info-circle'></i> Anda perlu masuk atau membuat akun terlebih dahulu sebelum checkout.
+                <i class='bx bx-info-circle'></i> Anda akan diarahkan untuk masuk/daftar akun saat checkout. Keranjang belanja Anda tetap aman tersimpan.
             </p>
             {% endif %}
 
