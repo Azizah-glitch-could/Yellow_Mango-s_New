@@ -1,0 +1,364 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Masuk / Daftar - Yellow Mango's</title>
+    
+    <!-- Favicon -->
+    <link rel="shortcut icon" href="{% static 'images/favicon.png' %}" type="image/png">
+    <link rel="icon" href="{% static 'images/favicon.png' %}" type="image/png">
+    
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            min-height: 100vh;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            background: #FFFDF7;
+        }
+
+        /* LEFT PANEL - Illustrated */
+        .left-panel {
+            background: linear-gradient(160deg, #1B3804 0%, #254E06 50%, #3A6B09 100%);
+            display: flex; flex-direction: column;
+            justify-content: center; align-items: center;
+            padding: 50px 48px; text-align: center;
+            position: relative; overflow: hidden;
+        }
+        .left-panel::before {
+            content: '';
+            position: absolute; inset: 0;
+            background: radial-gradient(circle at 20% 80%, rgba(255,183,3,0.15) 0%, transparent 60%),
+                        radial-gradient(circle at 80% 20%, rgba(255,183,3,0.1) 0%, transparent 50%);
+        }
+        .left-brand { position: relative; margin-bottom: 40px; }
+        .left-logo-ring {
+            width: 90px; height: 90px;
+            background: linear-gradient(135deg, #FFB703, #FB8500);
+            border-radius: 24px; display: flex; align-items: center;
+            justify-content: center; font-size: 2.5rem; margin: 0 auto 20px;
+            box-shadow: 0 12px 35px rgba(255,183,3,0.4);
+        }
+        .left-brand-name {
+            font-size: 1.9rem; font-weight: 800; color: #FFFFFF;
+            letter-spacing: -0.5px; margin-bottom: 6px;
+        }
+        .left-brand-tagline {
+            font-size: 0.9rem; color: rgba(255,255,255,0.65); line-height: 1.6;
+        }
+        .left-features { position: relative; }
+        .feature-item {
+            display: flex; align-items: center; gap: 14px;
+            background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 14px; padding: 14px 18px; margin-bottom: 12px;
+            text-align: left;
+        }
+        .feature-icon {
+            width: 42px; height: 42px; border-radius: 12px; flex-shrink: 0;
+            background: rgba(255,183,3,0.2); display: flex; align-items: center;
+            justify-content: center; font-size: 1.3rem;
+        }
+        .feature-text h5 { font-size: 0.9rem; font-weight: 700; color: #FFFFFF; margin-bottom: 2px; }
+        .feature-text p { font-size: 0.8rem; color: rgba(255,255,255,0.6); }
+        .left-footer-note {
+            position: relative; margin-top: 36px;
+            font-size: 0.8rem; color: rgba(255,255,255,0.4);
+        }
+
+        /* RIGHT PANEL - Form */
+        .right-panel {
+            display: flex; flex-direction: column;
+            justify-content: center; align-items: center;
+            padding: 48px 56px; overflow-y: auto;
+        }
+        .auth-card { width: 100%; max-width: 440px; }
+        .auth-heading { margin-bottom: 32px; }
+        .auth-heading h1 {
+            font-size: 2rem; font-weight: 800; color: #1E293B;
+            margin-bottom: 6px; letter-spacing: -0.3px;
+        }
+        .auth-heading p { color: #64748B; font-size: 0.95rem; }
+
+        /* MODE TOGGLE */
+        .mode-toggle {
+            display: flex; background: #F1F5F9;
+            border-radius: 14px; padding: 5px; margin-bottom: 28px;
+            border: 1px solid #E2E8F0;
+        }
+        .mode-btn {
+            flex: 1; padding: 10px 16px; border: none;
+            background: transparent; border-radius: 10px;
+            font-weight: 700; font-size: 0.9rem; color: #64748B;
+            cursor: pointer; transition: all 0.25s;
+        }
+        .mode-btn.active {
+            background: #FFFFFF; color: #254E06;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        /* ERROR */
+        .error-box {
+            background: #FEE2E2; border: 1px solid #FCA5A5;
+            border-radius: 12px; padding: 13px 16px; margin-bottom: 20px;
+            font-size: 0.88rem; color: #991B1B;
+            display: flex; align-items: center; gap: 10px;
+        }
+
+        /* FORM ELEMENTS */
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+        .form-group { margin-bottom: 18px; }
+        .form-label {
+            display: block; font-size: 0.84rem; font-weight: 700;
+            color: #374151; margin-bottom: 7px;
+        }
+        .input-wrap { position: relative; }
+        .input-wrap i.field-icon {
+            position: absolute; left: 14px; top: 50%;
+            transform: translateY(-50%); font-size: 1.15rem; color: #94A3B8;
+            pointer-events: none;
+        }
+        .form-control {
+            width: 100%; padding: 12px 14px 12px 42px;
+            border: 1.5px solid #E2E8F0; border-radius: 12px;
+            font-size: 0.95rem; font-family: inherit;
+            background: #FAFAFA; color: #1E293B;
+            transition: all 0.2s;
+        }
+        .form-control::placeholder { color: #94A3B8; }
+        .form-control:focus {
+            border-color: #254E06; outline: none;
+            box-shadow: 0 0 0 3px rgba(37,78,6,0.1);
+            background: #FFFFFF;
+        }
+        .form-control.no-icon { padding-left: 14px; }
+
+        /* SUBMIT */
+        .btn-submit {
+            width: 100%; padding: 14px;
+            background: linear-gradient(135deg, #254E06, #3A6B09);
+            color: #FFFFFF; border: none; border-radius: 12px;
+            font-weight: 800; font-size: 1rem; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+            box-shadow: 0 6px 18px rgba(37,78,6,0.25);
+            transition: all 0.2s; margin-top: 6px;
+            font-family: inherit;
+        }
+        .btn-submit:hover { transform: translateY(-2px); box-shadow: 0 10px 24px rgba(37,78,6,0.35); }
+
+        /* DIVIDER */
+        .or-divider {
+            display: flex; align-items: center; gap: 12px;
+            margin: 22px 0; color: #94A3B8; font-size: 0.82rem; font-weight: 600;
+        }
+        .or-divider::before, .or-divider::after {
+            content: ''; flex: 1; height: 1px; background: #E2E8F0;
+        }
+
+        /* FOOTER LINKS */
+        .auth-footer-links {
+            display: flex; justify-content: space-between; align-items: center;
+            padding-top: 20px; border-top: 1px solid #F1F5F9; margin-top: 20px;
+        }
+        .footer-link {
+            font-size: 0.84rem; color: #64748B; text-decoration: none;
+            font-weight: 600; display: flex; align-items: center; gap: 5px;
+            transition: color 0.2s;
+        }
+        .footer-link:hover { color: #254E06; }
+        .footer-link.admin-link { color: #254E06; }
+
+        @media (max-width: 860px) {
+            body { grid-template-columns: 1fr; }
+            .left-panel { display: none; }
+            .right-panel { padding: 40px 24px; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- LEFT PANEL -->
+    <div class="left-panel">
+        <div class="left-brand">
+            <div class="left-logo-ring">🥭</div>
+            <div class="left-brand-name">Yellow Mango's</div>
+            <div class="left-brand-tagline">
+                Kesegaran mangga asli pilihan berkualitas tinggi<br>
+                di setiap tegukan dan gigitan untuk harimu.
+            </div>
+        </div>
+        <div class="left-features">
+            <div class="feature-item">
+                <div class="feature-icon">🛒</div>
+                <div class="feature-text">
+                    <h5>Pesan Online Mudah</h5>
+                    <p>Pilih menu, atur keranjang, dan pesan via WhatsApp dalam hitungan detik.</p>
+                </div>
+            </div>
+            <div class="feature-item">
+                <div class="feature-icon">📦</div>
+                <div class="feature-text">
+                    <h5>Lacak Riwayat Pesanan</h5>
+                    <p>Pantau semua pesananmu dan lihat riwayat belanja lengkap di dashboard.</p>
+                </div>
+            </div>
+            <div class="feature-item">
+                <div class="feature-icon">🎯</div>
+                <div class="feature-text">
+                    <h5>Alamat Tersimpan</h5>
+                    <p>Simpan alamat pengiriman favoritmu agar checkout lebih cepat.</p>
+                </div>
+            </div>
+        </div>
+        <div class="left-footer-note">© 2026 Yellow Mango's. Made with 💛 in Makassar</div>
+    </div>
+
+    <!-- RIGHT PANEL (FORM) -->
+    <div class="right-panel">
+        <div class="auth-card">
+            <div class="auth-heading">
+                <h1 id="authTitle">Selamat Datang!</h1>
+                <p id="authSubtitle">Masuk ke akun Yellow Mango's kamu.</p>
+            </div>
+
+            <!-- MODE TOGGLE -->
+            <div class="mode-toggle">
+                <button type="button" class="mode-btn {% if mode != 'signup' %}active{% endif %}" id="btnLogin" onclick="setMode('login')">
+                    <i class='bx bx-log-in'></i> Masuk
+                </button>
+                <button type="button" class="mode-btn {% if mode == 'signup' %}active{% endif %}" id="btnSignup" onclick="setMode('signup')">
+                    <i class='bx bx-user-plus'></i> Daftar
+                </button>
+            </div>
+
+            {% if 'checkout' in next %}
+            <div style="background: #FEF3C7; border: 1.5px solid #F59E0B; border-radius: 12px; padding: 13px 16px; margin-bottom: 20px; font-size: 0.88rem; color: #92400E; display: flex; align-items: center; gap: 10px;">
+                <i class='bx bxs-shopping-bag' style="font-size: 1.4rem; color: #D97706; flex-shrink: 0;"></i>
+                <div>
+                    <strong>Pemberitahuan Checkout:</strong> Silakan masuk atau daftar akun baru untuk menyelesaikan pesanan Anda. Keranjang belanja Anda tetap aman tersimpan.
+                </div>
+            </div>
+            {% endif %}
+
+            {% if messages %}
+            {% for message in messages %}
+            <div style="background: #EFF6FF; border: 1px solid #BFDBFE; border-radius: 12px; padding: 12px 16px; margin-bottom: 18px; font-size: 0.88rem; color: #1E40AF; display: flex; align-items: center; gap: 10px;">
+                <i class='bx bx-info-circle' style="font-size: 1.3rem; flex-shrink: 0;"></i>
+                {{ message }}
+            </div>
+            {% endfor %}
+            {% endif %}
+
+            {% if error %}
+            <div class="error-box">
+                <i class='bx bx-error-circle' style="font-size:1.3rem;"></i>
+                {{ error }}
+            </div>
+            {% endif %}
+
+            <form method="POST">
+                {% csrf_token %}
+                <input type="hidden" name="action" id="actionInput" value="{{ mode|default:'login' }}">
+                <input type="hidden" name="next" value="{{ next }}">
+
+                <!-- SIGN UP FIELDS -->
+                <div id="signupFields" style="display: {% if mode == 'signup' %}block{% else %}none{% endif %};">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Nama Depan</label>
+                            <div class="input-wrap">
+                                <i class='bx bx-user field-icon'></i>
+                                <input type="text" name="first_name" class="form-control" placeholder="Nama depan">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Nama Belakang</label>
+                            <div class="input-wrap">
+                                <i class='bx bx-user field-icon'></i>
+                                <input type="text" name="last_name" class="form-control" placeholder="Nama belakang">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Nomor WhatsApp</label>
+                        <div class="input-wrap">
+                            <i class='bx bxl-whatsapp field-icon'></i>
+                            <input type="text" name="phone" class="form-control" placeholder="08xxxxxxxxxx">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- EMAIL -->
+                <div class="form-group">
+                    <label class="form-label" id="emailLabel">Email / Username</label>
+                    <div class="input-wrap">
+                        <i class='bx bx-envelope field-icon'></i>
+                        <input type="text" name="username" id="usernameInput" class="form-control"
+                            placeholder="Masukkan email atau username" required>
+                    </div>
+                </div>
+
+                <!-- PASSWORD -->
+                <div class="form-group">
+                    <label class="form-label">Kata Sandi</label>
+                    <div class="input-wrap">
+                        <i class='bx bx-lock-alt field-icon'></i>
+                        <input type="password" name="password" class="form-control"
+                            placeholder="Masukkan kata sandi" required>
+                    </div>
+                </div>
+
+                <!-- CONFIRM PASSWORD (SIGNUP) -->
+                <div class="form-group" id="confirmPwdGroup" style="display: {% if mode == 'signup' %}block{% else %}none{% endif %};">
+                    <label class="form-label">Konfirmasi Kata Sandi</label>
+                    <div class="input-wrap">
+                        <i class='bx bx-lock field-icon'></i>
+                        <input type="password" name="confirm_password" class="form-control"
+                            placeholder="Ulangi kata sandi">
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-submit" id="submitBtn">
+                    <i class='bx bx-log-in'></i>
+                    <span id="submitText">{% if mode == 'signup' %}Buat Akun{% else %}Masuk Sekarang{% endif %}</span>
+                </button>
+            </form>
+
+            <div class="auth-footer-links">
+                <a href="{% url 'index' %}" class="footer-link">
+                    <i class='bx bx-arrow-back'></i> Ke Beranda
+                </a>
+                <a href="{% url 'custom_admin_login' %}" class="footer-link admin-link">
+                    <i class='bx bxs-shield'></i> Portal Admin →
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function setMode(mode) {
+            const isSignup = mode === 'signup';
+            document.getElementById('actionInput').value = mode;
+            document.getElementById('signupFields').style.display = isSignup ? 'block' : 'none';
+            document.getElementById('confirmPwdGroup').style.display = isSignup ? 'block' : 'none';
+            document.getElementById('btnLogin').classList.toggle('active', !isSignup);
+            document.getElementById('btnSignup').classList.toggle('active', isSignup);
+            document.getElementById('authTitle').textContent = isSignup ? 'Buat Akun Baru' : 'Selamat Datang!';
+            document.getElementById('authSubtitle').textContent = isSignup
+                ? 'Daftar gratis dan mulai pesan sajian manggamu!'
+                : 'Masuk ke akun Yellow Mango\'s kamu.';
+            document.getElementById('submitText').textContent = isSignup ? 'Buat Akun' : 'Masuk Sekarang';
+            document.getElementById('submitBtn').querySelector('i').className = isSignup ? 'bx bx-user-plus' : 'bx bx-log-in';
+            document.getElementById('emailLabel').textContent = isSignup ? 'Email' : 'Email / Username';
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            setMode(document.getElementById('actionInput').value || 'login');
+        });
+    </script>
+</body>
+</html>

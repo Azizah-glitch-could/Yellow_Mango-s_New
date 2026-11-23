@@ -1,0 +1,197 @@
+{% extends 'store/base.html' %}
+{% load static %}
+{% block title %}Status Pesanan #{{ order.order_number }} - Yellow Mango's{% endblock %}
+
+{% block content %}
+{% include 'store/navbar.html' %}
+
+<style>
+    .status-wrap {
+        max-width: 720px;
+        margin: 45px auto 90px;
+        padding: 0 20px;
+        text-align: center;
+    }
+    .status-card {
+        background: #ffffff;
+        border-radius: 28px;
+        border: 2px solid #EAD465;
+        padding: 42px 36px;
+        box-shadow: 0 15px 40px rgba(37, 78, 6, .1);
+    }
+    .status-icon-paid {
+        width: 80px;
+        height: 80px;
+        background: #DCFCE7;
+        color: #16A34A;
+        border-radius: 50%;
+        display: grid;
+        place-items: center;
+        font-size: 2.8rem;
+        margin: 0 auto 18px;
+    }
+    .status-icon-pending {
+        width: 80px;
+        height: 80px;
+        background: #FEF3C7;
+        color: #D97706;
+        border-radius: 50%;
+        display: grid;
+        place-items: center;
+        font-size: 2.8rem;
+        margin: 0 auto 18px;
+    }
+    .status-title {
+        font-family: 'Playfair Display', serif;
+        color: #254E06;
+        font-size: 2.2rem;
+        margin-bottom: 8px;
+    }
+    .detail-box {
+        background: #FFFDF7;
+        border: 1.5px solid #F1E5C6;
+        border-radius: 18px;
+        padding: 22px;
+        text-align: left;
+        margin: 26px 0;
+    }
+    .detail-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        padding: 10px 0;
+        border-bottom: 1px solid #F1F5F9;
+        font-size: 0.95rem;
+    }
+    .detail-row:last-child {
+        border: 0;
+    }
+    .btn-action-primary {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        background: linear-gradient(135deg, #25D366, #128C7E);
+        color: #ffffff;
+        padding: 15px 24px;
+        border-radius: 14px;
+        font-weight: 800;
+        font-size: 1rem;
+        text-decoration: none;
+        box-shadow: 0 6px 20px rgba(37, 211, 102, 0.35);
+        transition: all 0.2s;
+        margin-bottom: 14px;
+    }
+    .btn-action-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 24px rgba(37, 211, 102, 0.45);
+    }
+    .btn-action-secondary {
+        display: inline-block;
+        color: #254E06;
+        font-weight: 700;
+        text-decoration: none;
+        font-size: 0.95rem;
+        margin-top: 10px;
+    }
+    .btn-action-secondary:hover {
+        text-decoration: underline;
+    }
+</style>
+
+<div class="status-wrap">
+    <div class="status-card">
+        {% if order.payment_status == 'PAID' %}
+            <div class="status-icon-paid">✓</div>
+            <h1 class="status-title">Pembayaran Berhasil!</h1>
+            <p style="color: #475569; font-size: 1.05rem;">
+                Terima kasih, <strong>{{ order.customer_name }}</strong>! Pesananmu sudah masuk ke dapur Yellow Mango's.
+            </p>
+        {% else %}
+            <div class="status-icon-pending">⌛</div>
+            <h1 class="status-title">Pesanan Diterima!</h1>
+            <p style="color: #475569; font-size: 1.05rem;">
+                Pesanan <strong>#{{ order.order_number }}</strong> sudah tercatat dan menunggu konfirmasi pembayaran.
+            </p>
+        {% endif %}
+
+        <div class="detail-box">
+            <div class="detail-row">
+                <span style="color: #64748B;">Nomor Pesanan</span>
+                <strong style="color: #254E06; letter-spacing: 0.5px;">#{{ order.order_number }}</strong>
+            </div>
+            <div class="detail-row">
+                <span style="color: #64748B;">Nama Pemesan</span>
+                <strong>{{ order.customer_name }} ({{ order.customer_phone }})</strong>
+            </div>
+            <div class="detail-row">
+                <span style="color: #64748B;">Item Pesanan</span>
+                <div style="text-align: right;">
+                    {% for item in order.items.all %}
+                    <div style="font-weight: 600; font-size: 0.88rem;">{{ item.quantity }}x {{ item.product_name }}</div>
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="detail-row">
+                <span style="color: #64748B;">Total Pembayaran</span>
+                <strong style="font-size: 1.15rem; color: #254E06;">Rp {{ order.total_amount|floatformat:0 }}</strong>
+            </div>
+            <div class="detail-row">
+                <span style="color: #64748B;">Status Pesanan</span>
+                <span style="background: #FEF3C7; color: #92400E; padding: 3px 10px; border-radius: 8px; font-weight: 700; font-size: 0.85rem;">
+                    {{ order.get_status_display }}
+                </span>
+            </div>
+            <div class="detail-row">
+                <span style="color: #64748B;">Status Pembayaran</span>
+                {% if order.payment_status == 'PAID' %}
+                    <span style="background: #DCFCE7; color: #166534; padding: 3px 10px; border-radius: 8px; font-weight: 700; font-size: 0.85rem;">
+                        LUNAS (PAID)
+                    </span>
+                {% else %}
+                    <span style="background: #FEE2E2; color: #991B1B; padding: 3px 10px; border-radius: 8px; font-weight: 700; font-size: 0.85rem;">
+                        {{ order.payment_status }}
+                    </span>
+                {% endif %}
+            </div>
+            {% if order.payment_type %}
+            <div class="detail-row">
+                <span style="color: #64748B;">Metode Pembayaran</span>
+                <strong>{{ order.payment_type }}</strong>
+            </div>
+            {% endif %}
+            {% if order.notes %}
+            <div style="margin-top: 10px; padding-top: 8px; border-top: 1px dashed #E2E8F0; font-size: 0.84rem; color: #64748B;">
+                <strong>Detail Pengiriman / Catatan:</strong><br>
+                {{ order.notes }}
+            </div>
+            {% endif %}
+        </div>
+
+        {% if order.payment_status == 'PAID' %}
+            <p style="color: #16A34A; font-weight: 700; margin-bottom: 22px; font-size: 0.95rem;">
+                <i class='bx bx-check-double'></i> Pembayaranmu telah terkonfirmasi. Tim kami sedang menyiapkan pesananmu!
+            </p>
+        {% else %}
+            <p style="color: #D97706; font-weight: 600; margin-bottom: 18px; font-size: 0.92rem;">
+                Jika sudah melakukan transfer atau bayar via Midtrans, halaman ini dapat dimuat ulang untuk memperbarui status.
+            </p>
+            <a href="{% url 'order_payment' order.order_number %}" style="display: block; background: #FFB703; color: #1B3804; padding: 14px; border-radius: 12px; font-weight: 800; text-decoration: none; margin-bottom: 14px;">
+                <i class='bx bx-credit-card'></i> Buka Sesi Pembayaran Kembali
+            </a>
+        {% endif %}
+
+        <!-- Tombol Konfirmasi WhatsApp -->
+        <a href="https://wa.me/6281234567890?text=Halo%20Yellow%20Mango%27s,%20saya%20sudah%20membuat%20pesanan%20dengan%20nomor%20pesanan%20%23{{ order.order_number }}%20atas%20nama%20{{ order.customer_name|urlencode }}%20(Total:%20Rp%20{{ order.total_amount }}).%20Mohon%20diproses%20ya,%20terima%20kasih!" 
+           target="_blank" class="btn-action-primary">
+            <i class='bx bxl-whatsapp' style="font-size: 1.4rem;"></i>
+            <span>Konfirmasi Pesanan ke WhatsApp Toko</span>
+        </a>
+
+        <a href="{% url 'menu' %}" class="btn-action-secondary">
+            &larr; Pesan Menu Lainnya
+        </a>
+    </div>
+</div>
+{% endblock %}

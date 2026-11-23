@@ -1,0 +1,531 @@
+{% load static %}
+<!-- ================= NAVBAR YELLOW MANGO'S (RESPONSIVE & CLEAN) ================= -->
+<style>
+    :root {
+        --ym-primary: #FFB703;
+        --ym-primary-hover: #FB8500;
+        --ym-green: #254E06;
+        --ym-green-dark: #1B3804;
+        --ym-bg-light: #FFFDF7;
+        --ym-text-dark: #1E293B;
+        --ym-border: #EAD465;
+    }
+
+    .ym-navbar-wrapper {
+        position: sticky;
+        top: 0;
+        z-index: 1000;
+        background-color: #FFFFFF;
+        border-bottom: 2px solid #F5EAB9;
+        box-shadow: 0 4px 16px rgba(37, 78, 6, 0.05);
+        width: 100%;
+    }
+
+    .ym-navbar-container {
+        max-width: 1260px;
+        margin: 0 auto;
+        padding: 12px 20px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 15px;
+    }
+
+    /* Brand Logo */
+    .ym-brand-logo {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        text-decoration: none;
+        color: var(--ym-green);
+        font-size: 1.3rem;
+        font-weight: 800;
+        letter-spacing: -0.5px;
+        white-space: nowrap;
+        flex-shrink: 0;
+    }
+
+    .ym-brand-icon {
+        width: 36px;
+        height: 36px;
+        background: linear-gradient(135deg, #FFC107, #FF8F00);
+        color: #ffffff;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.25rem;
+        box-shadow: 0 4px 8px rgba(255, 143, 0, 0.3);
+    }
+
+    /* Navigation Links */
+    .ym-nav-menu {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        list-style: none;
+        margin: 0;
+        padding: 0;
+    }
+
+    .ym-nav-link {
+        text-decoration: none;
+        color: #334155;
+        font-size: 0.92rem;
+        font-weight: 600;
+        white-space: nowrap;
+        padding: 6px 2px;
+        position: relative;
+        transition: color 0.2s ease;
+    }
+
+    .ym-nav-link:hover,
+    .ym-nav-link.active {
+        color: var(--ym-green);
+    }
+
+    .ym-nav-link::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 0%;
+        height: 2px;
+        background-color: var(--ym-primary);
+        border-radius: 2px;
+        transition: width 0.2s ease;
+    }
+
+    .ym-nav-link:hover::after,
+    .ym-nav-link.active::after {
+        width: 100%;
+    }
+
+    /* Action Bar (Cart & User) */
+    .ym-nav-actions {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-shrink: 0;
+    }
+
+    /* Cart Button with Counter */
+    .ym-cart-btn {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 14px;
+        background-color: #FEF3C7;
+        color: #92400E;
+        border: 1px solid #FDE68A;
+        border-radius: 10px;
+        text-decoration: none;
+        font-weight: 700;
+        font-size: 0.88rem;
+        white-space: nowrap;
+        transition: all 0.2s ease;
+    }
+
+    .ym-cart-btn:hover {
+        background-color: #FDE68A;
+        transform: translateY(-1px);
+    }
+
+    .ym-cart-badge {
+        background-color: #DC2626;
+        color: #ffffff;
+        font-size: 0.7rem;
+        font-weight: 800;
+        min-width: 18px;
+        height: 18px;
+        padding: 0 4px;
+        border-radius: 9px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    /* Guest Login Button */
+    .ym-guest-login-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 16px;
+        background: linear-gradient(135deg, #EAC800, #F59E0B);
+        color: #1E293B;
+        border-radius: 10px;
+        text-decoration: none;
+        font-weight: 700;
+        font-size: 0.88rem;
+        white-space: nowrap;
+        box-shadow: 0 2px 8px rgba(234, 200, 0, 0.25);
+        transition: all 0.2s ease;
+    }
+
+    .ym-guest-login-btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(234, 200, 0, 0.35);
+    }
+
+    /* User Profile Dropdown Pill */
+    /* Tentang Kami Dropdown */
+    .ym-tentang-wrapper {
+        position: relative;
+        list-style: none;
+    }
+    .ym-tentang-btn {
+        background: none;
+        border: none;
+        cursor: pointer;
+        font-family: inherit;
+        font-size: inherit;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+    .ym-tentang-dropdown {
+        display: none;
+        position: absolute;
+        top: calc(100% + 10px);
+        left: 50%;
+        transform: translateX(-50%);
+        background: #FFFFFF;
+        border: 1.5px solid #EAD465;
+        border-radius: 16px;
+        padding: 10px 0;
+        min-width: 220px;
+        box-shadow: 0 12px 32px rgba(37,78,6,0.12);
+        z-index: 10001;
+        animation: dropFade 0.2s ease;
+    }
+    .ym-tentang-dropdown.show {
+        display: block;
+    }
+    .ym-tentang-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 11px 20px;
+        color: #334155;
+        text-decoration: none;
+        font-size: 0.9rem;
+        font-weight: 500;
+        transition: background 0.15s;
+    }
+    .ym-tentang-item:hover {
+        background: #FEF9E7;
+        color: #254E06;
+    }
+    .ym-tentang-item i {
+        font-size: 1.1rem;
+        color: #FFB703;
+    }
+
+    .ym-user-menu-wrapper {
+        position: relative;
+    }
+
+    .ym-user-pill-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 7px 14px;
+        background-color: #F8FAFC;
+        border: 1.5px solid #E2E8F0;
+        border-radius: 12px;
+        color: var(--ym-green);
+        font-weight: 700;
+        font-size: 0.88rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        white-space: nowrap;
+    }
+
+    .ym-user-pill-btn:hover {
+        background-color: #F1F5F9;
+        border-color: #CBD5E1;
+    }
+
+    .ym-user-dropdown-panel {
+        display: none;
+        position: absolute;
+        top: calc(100% + 8px);
+        right: 0;
+        background: #FFFFFF;
+        border: 1.5px solid #EAD465;
+        border-radius: 16px;
+        min-width: 230px;
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.12);
+        padding: 10px 0;
+        z-index: 10001;
+    }
+
+    .ym-user-dropdown-panel.show {
+        display: block;
+        animation: dropFade 0.2s ease;
+    }
+
+    @keyframes dropFade {
+        from {
+            opacity: 0;
+            transform: translateY(-6px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .ym-user-panel-header {
+        padding: 10px 18px 12px 18px;
+        border-bottom: 1px solid #F1F5F9;
+        margin-bottom: 6px;
+    }
+
+    .ym-user-panel-name {
+        font-weight: 800;
+        color: #1E293B;
+        font-size: 0.95rem;
+    }
+
+    .ym-user-panel-sub {
+        font-size: 0.8rem;
+        color: #64748B;
+        word-break: break-all;
+    }
+
+    .ym-panel-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 18px;
+        color: #334155;
+        text-decoration: none;
+        font-size: 0.88rem;
+        font-weight: 600;
+        transition: background 0.15s;
+    }
+
+    .ym-panel-item:hover {
+        background-color: #FFFDF7;
+        color: var(--ym-green);
+    }
+
+    .ym-panel-item i {
+        font-size: 1.15rem;
+        color: #D97706;
+    }
+
+    .ym-panel-divider {
+        height: 1px;
+        background: #F1F5F9;
+        margin: 6px 0;
+    }
+
+    .ym-panel-item.logout {
+        color: #EF4444;
+    }
+
+    .ym-panel-item.logout:hover {
+        background-color: #FEF2F2;
+    }
+
+    .ym-panel-item.logout i {
+        color: #EF4444;
+    }
+
+    /* Mobile Hamburger */
+    .ym-mobile-toggle {
+        display: none;
+        background: none;
+        border: none;
+        font-size: 1.8rem;
+        color: var(--ym-green);
+        cursor: pointer;
+    }
+
+    @media (max-width: 960px) {
+        .ym-nav-menu {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            width: 100%;
+            background: #ffffff;
+            flex-direction: column;
+            padding: 20px;
+            border-bottom: 2px solid #F5EAB9;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+            gap: 14px;
+            align-items: flex-start;
+        }
+
+        .ym-nav-menu.show {
+            display: flex;
+        }
+
+        .ym-mobile-toggle {
+            display: block;
+        }
+    }
+</style>
+
+<header class="ym-navbar-wrapper">
+    <div class="ym-navbar-container">
+        <!-- Logo Brand -->
+        <a href="{% url 'index' %}" class="ym-brand-logo">
+            <img src="{% static 'images/logo.png' %}" alt="Logo Yellow Mango's" style="height: 38px; width: 38px; object-fit: contain;">
+            <span>Yellow Mango's</span>
+        </a>
+
+        <!-- Desktop Navigation Menu -->
+        <nav>
+            <ul class="ym-nav-menu" id="ymNavMenu">
+                <li><a href="{% url 'index' %}" class="ym-nav-link">Beranda</a></li>
+                <li><a href="{% url 'menu' %}" class="ym-nav-link">Menu & Katalog</a></li>
+                <li><a href="{% url 'articles_list' %}" class="ym-nav-link">Artikel & Blog</a></li>
+                <li class="ym-tentang-wrapper" id="tentangWrapper">
+                    <button type="button" class="ym-nav-link ym-tentang-btn" id="tentangToggle">
+                        Tentang Kami <i class='bx bx-chevron-down' style="font-size:0.9rem; vertical-align:middle;"></i>
+                    </button>
+                    <div class="ym-tentang-dropdown" id="tentangDropdown">
+                        <a href="{% url 'about' %}" class="ym-tentang-item"><i class='bx bx-info-circle'></i> Tentang Kami</a>
+                        <a href="{% url 'privacy' %}" class="ym-tentang-item"><i class='bx bx-shield'></i> Kebijakan Privasi</a>
+                        <a href="{% url 'terms' %}" class="ym-tentang-item"><i class='bx bx-file'></i> Syarat & Ketentuan</a>
+                        <a href="{% url 'disclaimer' %}" class="ym-tentang-item"><i class='bx bx-error-circle'></i> Disclaimer</a>
+                        <a href="{% url 'faq' %}" class="ym-tentang-item"><i class='bx bx-help-circle'></i> FAQ</a>
+                    </div>
+                </li>
+                <li><a href="{% url 'lokasi' %}" class="ym-nav-link">Lokasi</a></li>
+            </ul>
+        </nav>
+
+        <!-- Right Action Items -->
+        <div class="ym-nav-actions">
+            <!-- Keranjang Belanja -->
+            <a href="{% url 'cart' %}" class="ym-cart-btn" title="Keranjang Belanja">
+                <i class='bx bx-shopping-bag' style="font-size: 1.2rem;"></i>
+                <span>Keranjang</span>
+                <span class="ym-cart-badge" id="navCartCount">{{ cart_count }}</span>
+            </a>
+
+            <!-- Status Pengguna / Login -->
+            {% if user.is_authenticated %}
+            <div class="ym-user-menu-wrapper">
+                <button type="button" class="ym-user-pill-btn" id="userMenuToggle">
+                    <i class='bx bx-user-circle' style="font-size: 1.2rem;"></i>
+                    <span>{{ user.first_name|default:user.username|truncatechars:14 }}</span>
+                    <i class='bx bx-chevron-down' style="font-size: 1rem; color:#94A3B8;"></i>
+                </button>
+
+                <div class="ym-user-dropdown-panel" id="userDropdownPanel">
+                    <div class="ym-user-panel-header">
+                        <div class="ym-user-panel-name">{{ user.get_full_name|default:user.username }}</div>
+                        <div class="ym-user-panel-sub">{{ user.email|default:"Pelanggan Terdaftar" }}</div>
+                    </div>
+
+                    <a href="{% url 'user_profile' %}" class="ym-panel-item">
+                        <i class='bx bx-user'></i>
+                        <span>Profil & Dashboard Saya</span>
+                    </a>
+
+                    <a href="{% url 'user_profile' %}?tab=pesanan" class="ym-panel-item">
+                        <i class='bx bx-receipt'></i>
+                        <span>Riwayat Pesanan</span>
+                    </a>
+
+                    <a href="{% url 'user_profile' %}?tab=pesan" class="ym-panel-item">
+                        <i class='bx bx-message-rounded-dots'></i>
+                        <span>Pesan & Chat Bantuan</span>
+                    </a>
+
+                    <a href="{% url 'user_profile' %}?tab=pengaturan" class="ym-panel-item">
+                        <i class='bx bx-cog'></i>
+                        <span>Pengaturan Akun</span>
+                    </a>
+
+                    {% if user.is_staff or user.is_superuser %}
+                    <div class="ym-panel-divider"></div>
+                    <a href="{% url 'admin_dashboard' %}" class="ym-panel-item" style="color: #254E06;">
+                        <i class='bx bxs-dashboard' style="color: #254E06;"></i>
+                        <span>Panel Dashboard Admin</span>
+                    </a>
+                    {% endif %}
+
+                    <div class="ym-panel-divider"></div>
+                    <a href="{% url 'logout' %}" class="ym-panel-item logout">
+                        <i class='bx bx-log-out'></i>
+                        <span>Keluar (Logout)</span>
+                    </a>
+                </div>
+            </div>
+            {% else %}
+            <a href="{% url 'login' %}" class="ym-guest-login-btn">
+                <i class='bx bx-user' style="font-size: 1.1rem;"></i>
+                <span>Masuk / Daftar</span>
+            </a>
+            {% endif %}
+
+            <!-- Mobile Hamburger Button -->
+            <button class="ym-mobile-toggle" id="ymMobileToggle" aria-label="Toggle Navigation">
+                <i class='bx bx-menu'></i>
+            </button>
+        </div>
+    </div>
+</header>
+
+<script>
+    // Toggle Mobile Nav
+    const toggleBtn = document.getElementById('ymMobileToggle');
+    const navMenu = document.getElementById('ymNavMenu');
+    if (toggleBtn && navMenu) {
+        toggleBtn.addEventListener('click', () => {
+            navMenu.classList.toggle('show');
+            const icon = toggleBtn.querySelector('i');
+            if (navMenu.classList.contains('show')) {
+                icon.className = 'bx bx-x';
+            } else {
+                icon.className = 'bx bx-menu';
+            }
+        });
+    }
+
+    // Toggle Tentang Kami Dropdown
+    const tentangToggle = document.getElementById('tentangToggle');
+    const tentangDropdown = document.getElementById('tentangDropdown');
+    if (tentangToggle && tentangDropdown) {
+        tentangToggle.addEventListener('click', (e) => {
+            e.stopPropagation();
+            tentangDropdown.classList.toggle('show');
+            const icon = tentangToggle.querySelector('.bx-chevron-down, .bx-chevron-up');
+            if (icon) icon.className = tentangDropdown.classList.contains('show') ? 'bx bx-chevron-up' : 'bx bx-chevron-down';
+        });
+        document.addEventListener('click', (e) => {
+            if (!tentangDropdown.contains(e.target) && !tentangToggle.contains(e.target)) {
+                tentangDropdown.classList.remove('show');
+                const icon = tentangToggle.querySelector('i');
+                if (icon) icon.className = 'bx bx-chevron-down';
+            }
+        });
+    }
+
+    // Toggle User Dropdown
+    const userToggle = document.getElementById('userMenuToggle');
+    const userDropdown = document.getElementById('userDropdownPanel');
+    if (userToggle && userDropdown) {
+        userToggle.addEventListener('click', (e) => {
+            e.stopPropagation();
+            userDropdown.classList.toggle('show');
+        });
+
+        // Tutup jika klik di luar
+        document.addEventListener('click', (e) => {
+            if (!userDropdown.contains(e.target) && !userToggle.contains(e.target)) {
+                userDropdown.classList.remove('show');
+            }
+        });
+    }
+</script>

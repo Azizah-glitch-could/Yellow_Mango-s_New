@@ -1,0 +1,378 @@
+{% extends 'store/admin_panel/admin_base.html' %}
+
+{% block title %}Pesan Masuk & Chat Bantuan - Yellow Mango's Admin{% endblock %}
+{% block page_title %}Kotak Masuk, Chat & Ulasan Pelanggan{% endblock %}
+
+{% block extra_css %}
+<style>
+    .messages-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 16px;
+        margin-bottom: 24px;
+    }
+    .stat-pill {
+        background: #FFFFFF;
+        border: 1px solid var(--border-color);
+        border-radius: 14px;
+        padding: 16px 20px;
+        display: flex;
+        align-items: center;
+        gap: 14px;
+    }
+    .stat-pill-icon {
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.3rem;
+    }
+
+    .table-card {
+        background: var(--white);
+        border-radius: 16px;
+        border: 1px solid var(--border-color);
+        overflow: hidden;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.02);
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    th {
+        background-color: #F8FAFC;
+        text-align: left;
+        padding: 16px 20px;
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: var(--text-muted);
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    td {
+        padding: 18px 20px;
+        border-bottom: 1px solid #F1F5F9;
+        font-size: 0.9rem;
+        vertical-align: top;
+    }
+
+    tr:hover td {
+        background-color: #FAFCF8;
+    }
+
+    .alert-success {
+        background-color: #DCFCE7;
+        color: #166534;
+        padding: 14px 18px;
+        border-radius: 12px;
+        margin-bottom: 20px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        border: 1px solid #BBF7D0;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .badge-user {
+        background: #FEF3C7;
+        color: #92400E;
+        font-size: 0.74rem;
+        font-weight: 700;
+        padding: 3px 8px;
+        border-radius: 6px;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .badge-status-unread {
+        background: #FEE2E2;
+        color: #991B1B;
+        font-size: 0.74rem;
+        font-weight: 700;
+        padding: 3px 8px;
+        border-radius: 6px;
+    }
+
+    .badge-status-replied {
+        background: #DCFCE7;
+        color: #166534;
+        font-size: 0.74rem;
+        font-weight: 700;
+        padding: 3px 8px;
+        border-radius: 6px;
+    }
+
+    .reply-box {
+        background: #F0FDF4;
+        border: 1px solid #BBF7D0;
+        border-radius: 10px;
+        padding: 10px 14px;
+        margin-top: 10px;
+        font-size: 0.86rem;
+        color: #166534;
+    }
+
+    .btn-action-reply {
+        background-color: #254E06;
+        color: #FFFFFF;
+        padding: 7px 14px;
+        border-radius: 8px;
+        text-decoration: none;
+        font-size: 0.82rem;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        border: none;
+        cursor: pointer;
+        transition: opacity 0.2s;
+    }
+    .btn-action-reply:hover {
+        opacity: 0.9;
+    }
+
+    .btn-action-wa {
+        background-color: #DCFCE7;
+        color: #166534;
+        padding: 7px 12px;
+        border-radius: 8px;
+        text-decoration: none;
+        font-size: 0.82rem;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        border: 1px solid #BBF7D0;
+    }
+
+    .btn-del {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        border: 1px solid #E2E8F0;
+        background: #FFFFFF;
+        color: #DC2626;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1rem;
+        transition: background 0.15s;
+    }
+    .btn-del:hover {
+        background: #FEE2E2;
+    }
+
+    /* Modal Styling */
+    .reply-modal {
+        display: none;
+        position: fixed;
+        top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0,0,0,0.5);
+        z-index: 10000;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+    }
+    .reply-modal.active {
+        display: flex;
+    }
+    .reply-modal-content {
+        background: #FFFFFF;
+        border-radius: 20px;
+        max-width: 580px;
+        width: 100%;
+        padding: 30px;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+
+{% if messages %}
+    {% for message in messages %}
+        <div class="alert-success">
+            <i class='bx bx-check-circle' style="font-size: 1.2rem;"></i>
+            <span>{{ message }}</span>
+        </div>
+    {% endfor %}
+{% endif %}
+
+<div style="margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+    <div>
+        <h3 style="color: var(--moss-green); font-size: 1.25rem; font-weight: 800; margin-bottom: 4px;">Kelola Pesan Masuk & Chat</h3>
+        <p style="color: var(--text-muted); font-size: 0.9rem;">Tanggapi pertanyaan pelanggan secara langsung yang akan muncul pada menu profil mereka atau hubungi via WhatsApp.</p>
+    </div>
+</div>
+
+<div class="table-card">
+    <table>
+        <thead>
+            <tr>
+                <th style="width: 20%;">Pengirim & Kontak</th>
+                <th style="width: 18%;">Topik / Subjek</th>
+                <th style="width: 38%;">Isi Pesan & Balasan Admin</th>
+                <th style="width: 12%;">Waktu</th>
+                <th style="width: 12%;">Aksi</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for msg in messages_list %}
+            <tr>
+                <!-- Pengirim -->
+                <td>
+                    <div style="font-weight: 700; color: #1E293B; margin-bottom: 4px;">
+                        {{ msg.sender_name }}
+                    </div>
+                    {% if msg.customer %}
+                    <span class="badge-user" title="Pengguna Terdaftar">
+                        <i class='bx bxs-user-check'></i> Akun: {{ msg.customer.username }}
+                    </span>
+                    {% endif %}
+                    <div style="font-size: 0.82rem; color: #64748B; margin-top: 6px;">
+                        {% if msg.sender_phone %}
+                        <div><i class='bx bx-phone'></i> {{ msg.sender_phone }}</div>
+                        {% endif %}
+                        {% if msg.sender_email %}
+                        <div><i class='bx bx-envelope'></i> {{ msg.sender_email }}</div>
+                        {% endif %}
+                    </div>
+                </td>
+
+                <!-- Subjek -->
+                <td>
+                    <strong style="color: #254E06; font-size: 0.88rem; display: block; margin-bottom: 6px;">
+                        {{ msg.subject }}
+                    </strong>
+                    {% if msg.admin_reply %}
+                    <span class="badge-status-replied"><i class='bx bx-check'></i> Sudah Dibalas</span>
+                    {% else %}
+                    <span class="badge-status-unread"><i class='bx bx-time'></i> Belum Dibalas</span>
+                    {% endif %}
+                </td>
+
+                <!-- Isi Pesan -->
+                <td>
+                    <div style="background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 10px; padding: 10px 14px; font-size: 0.88rem; color: #334155; line-height: 1.5;">
+                        {{ msg.message|linebreaksbr }}
+                    </div>
+
+                    {% if msg.admin_reply %}
+                    <div class="reply-box">
+                        <div style="font-weight: 700; font-size: 0.8rem; margin-bottom: 3px; display: flex; align-items: center; gap: 4px;">
+                            <i class='bx bxs-reply'></i> Balasan Anda:
+                        </div>
+                        {{ msg.admin_reply|linebreaksbr }}
+                    </div>
+                    {% endif %}
+                </td>
+
+                <!-- Waktu Kirim -->
+                <td style="font-size:0.82rem; color: var(--text-muted);">
+                    {{ msg.created_at|date:"d M Y" }}<br>
+                    <strong>{{ msg.created_at|date:"H:i" }} WIB</strong>
+                </td>
+
+                <!-- Aksi -->
+                <td>
+                    <div style="display:flex; flex-direction:column; gap:6px; align-items:flex-start;">
+                        <!-- Tombol Balas Pesan (Modal) -->
+                        <button type="button" class="btn-action-reply" 
+                                onclick="openReplyModal('{{ msg.id }}', '{{ msg.sender_name|escapejs }}', '{{ msg.subject|escapejs }}', '{{ msg.admin_reply|default:''|escapejs }}')">
+                            <i class='bx bx-message-rounded-edit'></i> Balas
+                        </button>
+
+                        {% if msg.sender_phone %}
+                        <a href="https://wa.me/{{ msg.sender_phone }}" target="_blank" class="btn-action-wa" title="Hubungi via WhatsApp">
+                            <i class='bx bxl-whatsapp'></i> WA
+                        </a>
+                        {% endif %}
+
+                        <form method="POST" onsubmit="return confirm('Hapus pesan dari {{ msg.sender_name }}?');" style="margin-top: 4px;">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="delete">
+                            <input type="hidden" name="message_id" value="{{ msg.id }}">
+                            <button type="submit" class="btn-del" title="Hapus Pesan">
+                                <i class='bx bx-trash'></i>
+                            </button>
+                        </form>
+                    </div>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="5" style="text-align:center; padding: 50px 20px; color: var(--text-muted);">
+                    <div style="font-size: 2.8rem; margin-bottom: 8px;">📬</div>
+                    <div style="font-weight: 700; color: #1E293B;">Belum ada pesan masuk atau ulasan pelanggan.</div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Modal Balas Pesan -->
+<div class="reply-modal" id="replyModal">
+    <div class="reply-modal-content">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+            <h3 style="color: #254E06; font-size: 1.15rem; font-weight: 800;">
+                <i class='bx bx-reply'></i> Balas Pesan Pelanggan
+            </h3>
+            <button type="button" onclick="closeReplyModal()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #94A3B8;">&times;</button>
+        </div>
+
+        <p style="font-size: 0.88rem; color: #64748B; margin-bottom: 16px;">
+            Membalas pesan dari <strong id="modalSenderName" style="color:#1E293B;">-</strong> terkait <span id="modalSubject" style="color:#254E06; font-weight:700;">-</span>. Balasan ini akan langsung tampil di akun pelanggan.
+        </p>
+
+        <form method="POST" action="{% url 'admin_messages' %}">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="reply">
+            <input type="hidden" name="message_id" id="modalMsgId">
+
+            <div style="margin-bottom: 18px;">
+                <label style="display: block; font-size: 0.85rem; font-weight: 700; color: #1E293B; margin-bottom: 6px;">Tuliskan Balasan Admin:</label>
+                <textarea name="admin_reply" id="modalReplyText" style="width: 100%; min-height: 130px; padding: 12px 14px; border: 1.5px solid #CBD5E1; border-radius: 12px; font-family: inherit; font-size: 0.92rem; outline: none;" placeholder="Halo, terima kasih telah menghubungi Yellow Mango's..." required></textarea>
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 10px;">
+                <button type="button" onclick="closeReplyModal()" style="padding: 10px 18px; background: #F1F5F9; border: 1px solid #E2E8F0; border-radius: 10px; font-weight: 600; cursor: pointer;">Batal</button>
+                <button type="submit" style="padding: 10px 22px; background: #254E06; color: #FFFFFF; border: none; border-radius: 10px; font-weight: 700; cursor: pointer;">
+                    <i class='bx bx-send'></i> Simpan & Kirim Balasan
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function openReplyModal(id, sender, subject, currentReply) {
+    document.getElementById('modalMsgId').value = id;
+    document.getElementById('modalSenderName').textContent = sender;
+    document.getElementById('modalSubject').textContent = subject;
+    document.getElementById('modalReplyText').value = currentReply;
+    document.getElementById('replyModal').classList.add('active');
+}
+
+function closeReplyModal() {
+    document.getElementById('replyModal').classList.remove('active');
+}
+
+// Tutup modal jika klik di luar
+window.addEventListener('click', function(e) {
+    const modal = document.getElementById('replyModal');
+    if (e.target === modal) {
+        closeReplyModal();
+    }
+});
+</script>
+
+{% endblock %}

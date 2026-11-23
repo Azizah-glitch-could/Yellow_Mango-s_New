@@ -1,0 +1,524 @@
+{% extends 'store/base.html' %}
+{% load static %}
+{% block title %}Pilih Pembayaran #{{ order.order_number }} - Yellow Mango's{% endblock %}
+
+{% block content %}
+{% include 'store/navbar.html' %}
+
+<style>
+    .payment-wrap {
+        max-width: 860px;
+        margin: 40px auto 90px;
+        padding: 0 20px;
+    }
+    .payment-card {
+        background: #ffffff;
+        border: 2px solid #EAD465;
+        border-radius: 26px;
+        padding: 38px;
+        box-shadow: 0 12px 34px rgba(37,78,6,.08);
+    }
+    .payment-brand {
+        color: #254E06;
+        font-family: 'Playfair Display', serif;
+        font-size: 2.1rem;
+        margin: 0 0 6px;
+    }
+    .payment-total-box {
+        background: linear-gradient(135deg, #FFFDF7, #FEF9E7);
+        border: 2px solid #EAD465;
+        border-radius: 20px;
+        padding: 22px 26px;
+        margin-bottom: 28px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 14px;
+    }
+    .payment-total {
+        font-size: 2.2rem;
+        font-weight: 900;
+        color: #254E06;
+    }
+    
+    /* Method Option Cards */
+    .method-option-card {
+        border: 2px solid #E2E8F0;
+        border-radius: 18px;
+        margin-bottom: 14px;
+        background: #FFFFFF;
+        cursor: pointer;
+        transition: all 0.25s ease;
+        overflow: hidden;
+    }
+    .method-option-card:hover {
+        border-color: #CBD5E1;
+        box-shadow: 0 4px 14px rgba(0,0,0,0.05);
+    }
+    .method-option-card.active {
+        border-color: #254E06;
+        box-shadow: 0 6px 20px rgba(37,78,6,0.12);
+        background: #FAFCF8;
+    }
+    
+    .method-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 18px 22px;
+        gap: 14px;
+    }
+    .method-header-left {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+    }
+    .method-radio-custom {
+        width: 22px;
+        height: 22px;
+        border: 2px solid #CBD5E1;
+        border-radius: 50%;
+        display: grid;
+        place-items: center;
+        flex-shrink: 0;
+        transition: all 0.2s;
+    }
+    .method-option-card.active .method-radio-custom {
+        border-color: #254E06;
+        background: #254E06;
+    }
+    .method-radio-custom::after {
+        content: '';
+        width: 8px;
+        height: 8px;
+        background: #FFFFFF;
+        border-radius: 50%;
+        display: none;
+    }
+    .method-option-card.active .method-radio-custom::after {
+        display: block;
+    }
+    
+    .method-title {
+        font-weight: 800;
+        font-size: 1.05rem;
+        color: #1E293B;
+        margin-bottom: 3px;
+    }
+    .method-desc {
+        font-size: 0.84rem;
+        color: #64748B;
+    }
+    .method-badges {
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+        align-items: center;
+    }
+    .badge-pill {
+        background: #F1F5F9;
+        color: #475569;
+        font-size: 0.75rem;
+        font-weight: 700;
+        padding: 3px 8px;
+        border-radius: 6px;
+        border: 1px solid #E2E8F0;
+    }
+    .badge-pill.highlight {
+        background: #DCFCE7;
+        color: #166534;
+        border-color: #BBF7D0;
+    }
+    
+    /* Method Content Panel (Expandable) */
+    .method-content-panel {
+        display: none;
+        padding: 0 22px 22px 58px;
+        border-top: 1px solid #F1F5F9;
+        margin-top: 4px;
+        padding-top: 18px;
+    }
+    .method-option-card.active .method-content-panel {
+        display: block;
+        animation: fadeIn 0.25s ease;
+    }
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(-4px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Buttons */
+    .btn-pay-action {
+        border: 0;
+        border-radius: 14px;
+        padding: 16px 24px;
+        background: linear-gradient(135deg, #FFB703, #FB8500);
+        color: #FFFFFF;
+        font-weight: 800;
+        font-size: 1.05rem;
+        cursor: pointer;
+        width: 100%;
+        margin-top: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        box-shadow: 0 6px 18px rgba(251, 133, 0, 0.35);
+        transition: all 0.2s;
+        text-decoration: none;
+    }
+    .btn-pay-action:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 24px rgba(251, 133, 0, 0.45);
+    }
+    .btn-pay-cod {
+        background: linear-gradient(135deg, #254E06, #3A6B09);
+        box-shadow: 0 6px 18px rgba(37,78,6, 0.3);
+    }
+    .btn-pay-cod:hover {
+        box-shadow: 0 10px 24px rgba(37,78,6, 0.4);
+    }
+
+    .order-items-table {
+        width: 100%;
+        margin-top: 10px;
+        border-collapse: collapse;
+    }
+    .order-items-table td {
+        padding: 8px 0;
+        border-bottom: 1px solid #F1F5F9;
+        font-size: 0.9rem;
+    }
+    
+    .qris-preview-box {
+        text-align: center;
+        background: #FFFFFF;
+        border: 1.5px solid #E2E8F0;
+        border-radius: 14px;
+        padding: 18px;
+        margin: 12px 0;
+    }
+</style>
+
+<div class="payment-wrap">
+    <div class="payment-card">
+        <h1 class="payment-brand">Pilih Metode Pembayaran</h1>
+        <p style="color: #64748B; margin-bottom: 22px;">
+            Pesanan <strong>#{{ order.order_number }}</strong> untuk <strong>{{ order.customer_name }}</strong>. Silakan pilih cara pembayaran yang kamu inginkan.
+        </p>
+
+        <!-- Pesan Alert jika ada -->
+        {% if messages %}
+            {% for message in messages %}
+            <div style="background: #FEF3C7; border: 1.5px solid #F59E0B; border-radius: 12px; padding: 12px 16px; margin-bottom: 20px; color: #92400E; font-size: 0.88rem;">
+                <i class='bx bx-info-circle'></i> {{ message }}
+            </div>
+            {% endfor %}
+        {% endif %}
+
+        <!-- Ringkasan Total & Pesanan -->
+        <div class="payment-total-box">
+            <div>
+                <div style="color: #64748B; font-size: 0.88rem; font-weight: 600;">Total Pembayaran</div>
+                <div class="payment-total">Rp {{ order.total_amount|floatformat:0 }}</div>
+                <div style="color: #64748B; font-size: 0.82rem; margin-top: 4px;">
+                    Status: <span style="font-weight: 700; color: #D97706;">{{ order.get_status_display }}</span> · 
+                    <span style="font-weight: 700; color: #DC2626;">{{ order.payment_status }}</span>
+                </div>
+            </div>
+            <button type="button" onclick="toggleItemDetails()" style="background:none; border:1px solid #CBD5E1; border-radius:10px; padding:8px 14px; cursor:pointer; font-size:0.85rem; font-weight:700; color:#254E06;">
+                <i class='bx bx-list-ul'></i> Lihat Rincian Menu
+            </button>
+        </div>
+
+        <!-- Rincian Item (Hidden by default, toggleable) -->
+        <div id="itemsDetailBox" style="display:none; background:#FFFDF7; border:1px solid #F1E5C6; border-radius:14px; padding:16px 20px; margin-bottom:24px;">
+            <div style="font-weight:700; color:#254E06; font-size:0.92rem; margin-bottom:6px;">Daftar Item Menu:</div>
+            <table class="order-items-table">
+                {% for item in order.items.all %}
+                <tr>
+                    <td style="color: #1E293B; font-weight: 600;">{{ item.quantity }}x {{ item.product_name }}</td>
+                    <td style="text-align: right; font-weight: 700; color: #254E06;">Rp {{ item.get_subtotal|floatformat:0 }}</td>
+                </tr>
+                {% endfor %}
+            </table>
+            {% if order.notes %}
+            <div style="font-size: 0.82rem; color: #64748B; margin-top: 8px; padding-top: 8px; border-top: 1px dashed #E2E8F0;">
+                <strong>Pengiriman / Catatan:</strong> {{ order.notes }}
+            </div>
+            {% endif %}
+        </div>
+
+        <h3 style="font-size: 1.15rem; font-weight: 800; color: #1E293B; margin-bottom: 16px;">
+            Pilihan Cara Pembayaran:
+        </h3>
+
+        <!-- PILIHAN 1: QRIS & E-WALLET -->
+        <div class="method-option-card active" id="card-qris" onclick="selectMethod('qris')">
+            <div class="method-header">
+                <div class="method-header-left">
+                    <div class="method-radio-custom"></div>
+                    <div>
+                        <div class="method-title">
+                            <i class='bx bx-qr-scan' style="color:#D97706;"></i> QRIS & E-Wallet (Instan & Otomatis)
+                        </div>
+                        <div class="method-desc">Scan kode QR lewat BCA, BRImo, Livin, GoPay, OVO, ShopeePay, DANA</div>
+                    </div>
+                </div>
+                <div class="method-badges">
+                    <span class="badge-pill highlight">QRIS</span>
+                    <span class="badge-pill">GoPay</span>
+                    <span class="badge-pill">ShopeePay</span>
+                    <span class="badge-pill">DANA</span>
+                </div>
+            </div>
+            <div class="method-content-panel">
+                <p style="font-size: 0.88rem; color: #475569; margin-bottom: 12px; line-height: 1.5;">
+                    Bayar cepat dan praktis dengan memindai kode QRIS menggunakan aplikasi e-Wallet atau mobile banking apa saja. Transaksi otomatis terverifikasi dalam beberapa detik.
+                </p>
+                {% if snap_token and midtrans_client_key %}
+                <button type="button" class="btn-pay-action" onclick="triggerSnapPayment()">
+                    <i class='bx bx-qr-scan'></i>
+                    <span>Bayar Sekarang via QRIS Midtrans</span>
+                </button>
+                {% else %}
+                <div class="qris-preview-box">
+                    <div style="font-weight: 700; font-size: 0.95rem; color: #1E293B; margin-bottom: 8px;">
+                        <span style="background:#0F172A; color:#FFF; padding:2px 8px; border-radius:4px; font-size:0.8rem;">QRIS</span> Standar Pembayaran Nasional
+                    </div>
+                    <div style="display:inline-block; padding:12px; background:#F8FAFC; border:1px solid #CBD5E1; border-radius:12px;">
+                        <img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=MIDTRANS-YELLOW-MANGOS-{{ order.order_number }}" alt="QRIS Demo" style="display:block; width:160px; height:160px;">
+                    </div>
+                    <div style="font-size: 0.82rem; color: #64748B; margin-top: 8px;">
+                        Total Tagihan: <strong>Rp {{ order.total_amount|floatformat:0 }}</strong>
+                    </div>
+                </div>
+                <a href="{% url 'simulate_payment' order.order_number %}" class="btn-pay-action">
+                    <i class='bx bx-check-circle'></i>
+                    <span>Selesaikan Pembayaran QRIS (Mode Simulasi)</span>
+                </a>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- PILIHAN 2: VIRTUAL ACCOUNT / TRANSFER BANK -->
+        <div class="method-option-card" id="card-va" onclick="selectMethod('va')">
+            <div class="method-header">
+                <div class="method-header-left">
+                    <div class="method-radio-custom"></div>
+                    <div>
+                        <div class="method-title">
+                            <i class='bx bxs-bank' style="color:#2563EB;"></i> Virtual Account Bank (Transfer Otomatis)
+                        </div>
+                        <div class="method-desc">BCA, Mandiri, BNI, BRI, Permata Bank (24 Jam Otomatis)</div>
+                    </div>
+                </div>
+                <div class="method-badges">
+                    <span class="badge-pill">BCA</span>
+                    <span class="badge-pill">Mandiri</span>
+                    <span class="badge-pill">BRI</span>
+                    <span class="badge-pill">BNI</span>
+                </div>
+            </div>
+            <div class="method-content-panel">
+                <p style="font-size: 0.88rem; color: #475569; margin-bottom: 12px; line-height: 1.5;">
+                    Transfer melalui nomor Virtual Account unik dari ATM, Mobile Banking, atau Internet Banking. Tidak perlu upload bukti transfer, status langsung berubah lunas secara otomatis.
+                </p>
+                {% if snap_token and midtrans_client_key %}
+                <button type="button" class="btn-pay-action" onclick="triggerSnapPayment()">
+                    <i class='bx bxs-bank'></i>
+                    <span>Pilih Bank & Bayar via Midtrans VA</span>
+                </button>
+                {% else %}
+                <div style="background:#F8FAFC; border:1px solid #E2E8F0; border-radius:12px; padding:14px; margin-bottom:12px; font-size:0.88rem;">
+                    <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
+                        <span style="color:#64748B;">Nomor VA (BCA / Mandiri / BRI / BNI):</span>
+                        <strong style="color:#254E06; font-size:1rem; letter-spacing:1px;">88001{{ order.id }}928371</strong>
+                    </div>
+                    <div style="display:flex; justify-content:space-between;">
+                        <span style="color:#64748B;">Atas Nama:</span>
+                        <strong>Yellow Mango's Midtrans</strong>
+                    </div>
+                </div>
+                <a href="{% url 'simulate_payment' order.order_number %}" class="btn-pay-action">
+                    <i class='bx bx-check-circle'></i>
+                    <span>Selesaikan Pembayaran Transfer Bank (Mode Simulasi)</span>
+                </a>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- PILIHAN 3: KARTU KREDIT / DEBIT ONLINE -->
+        <div class="method-option-card" id="card-card" onclick="selectMethod('card')">
+            <div class="method-header">
+                <div class="method-header-left">
+                    <div class="method-radio-custom"></div>
+                    <div>
+                        <div class="method-title">
+                            <i class='bx bxs-credit-card' style="color:#7C3AED;"></i> Kartu Kredit / Debit Online
+                        </div>
+                        <div class="method-desc">Visa, MasterCard, JCB dengan proteksi 3D-Secure Midtrans</div>
+                    </div>
+                </div>
+                <div class="method-badges">
+                    <span class="badge-pill">Visa</span>
+                    <span class="badge-pill">MasterCard</span>
+                    <span class="badge-pill">JCB</span>
+                </div>
+            </div>
+            <div class="method-content-panel">
+                <p style="font-size: 0.88rem; color: #475569; margin-bottom: 12px; line-height: 1.5;">
+                    Bayar langsung menggunakan kartu kredit atau debit berlogo Visa, MasterCard, atau JCB dengan enkripsi 3D Secure dan OTP resmi dari bank penerbit.
+                </p>
+                {% if snap_token and midtrans_client_key %}
+                <button type="button" class="btn-pay-action" onclick="triggerSnapPayment()">
+                    <i class='bx bxs-credit-card'></i>
+                    <span>Bayar dengan Kartu Kredit / Debit</span>
+                </button>
+                {% else %}
+                <a href="{% url 'simulate_payment' order.order_number %}" class="btn-pay-action">
+                    <i class='bx bx-check-circle'></i>
+                    <span>Selesaikan Pembayaran Kartu (Mode Simulasi)</span>
+                </a>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- PILIHAN 4: GERAI RETAIL / MINIMARKET -->
+        <div class="method-option-card" id="card-cstore" onclick="selectMethod('cstore')">
+            <div class="method-header">
+                <div class="method-header-left">
+                    <div class="method-radio-custom"></div>
+                    <div>
+                        <div class="method-title">
+                            <i class='bx bxs-store-alt' style="color:#EA580C;"></i> Gerai Retail / Minimarket
+                        </div>
+                        <div class="method-desc">Bayar tunai di kasir Indomaret atau Alfamart terdekat</div>
+                    </div>
+                </div>
+                <div class="method-badges">
+                    <span class="badge-pill">Indomaret</span>
+                    <span class="badge-pill">Alfamart</span>
+                </div>
+            </div>
+            <div class="method-content-panel">
+                <p style="font-size: 0.88rem; color: #475569; margin-bottom: 12px; line-height: 1.5;">
+                    Tunjukkan kode pembayaran yang didapat dari sistem ke kasir Indomaret atau Alfamart terdekat, lalu bayar tunai di kasir.
+                </p>
+                {% if snap_token and midtrans_client_key %}
+                <button type="button" class="btn-pay-action" onclick="triggerSnapPayment()">
+                    <i class='bx bxs-store-alt'></i>
+                    <span>Dapatkan Kode Bayar Minimarket</span>
+                </button>
+                {% else %}
+                <a href="{% url 'simulate_payment' order.order_number %}" class="btn-pay-action">
+                    <i class='bx bx-check-circle'></i>
+                    <span>Selesaikan Pembayaran Retail (Mode Simulasi)</span>
+                </a>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- PILIHAN 5: BAYAR TUNAI / COD -->
+        <div class="method-option-card" id="card-cod" onclick="selectMethod('cod')">
+            <div class="method-header">
+                <div class="method-header-left">
+                    <div class="method-radio-custom"></div>
+                    <div>
+                        <div class="method-title">
+                            <i class='bx bx-money' style="color:#16A34A;"></i> Bayar Tunai di Tempat (COD / Kasir)
+                        </div>
+                        <div class="method-desc">Bayar uang pas saat pesanan diantar kurir atau saat ambil di outlet</div>
+                    </div>
+                </div>
+                <div class="method-badges">
+                    <span class="badge-pill highlight">COD</span>
+                    <span class="badge-pill">Tunai</span>
+                </div>
+            </div>
+            <div class="method-content-panel">
+                <p style="font-size: 0.88rem; color: #475569; margin-bottom: 12px; line-height: 1.5;">
+                    Kamu dapat membayar secara tunai saat pesanan tiba di alamatmu atau saat kamu mengambil pesanan di outlet kami. Harap siapkan uang pas sesuai total belanja <strong>Rp {{ order.total_amount|floatformat:0 }}</strong>.
+                </p>
+                <form method="POST" action="{% url 'order_payment' order.order_number %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="cod">
+                    <button type="submit" class="btn-pay-action btn-pay-cod">
+                        <i class='bx bx-check-shield'></i>
+                        <span>Konfirmasi Pesanan dengan Bayar Tunai (COD)</span>
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Petunjuk Aktivasi Midtrans jika kunci belum dimasukkan -->
+        {% if not snap_token or not midtrans_client_key %}
+        <div style="background:#FFFDF7; border:1.5px solid #F1E5C6; border-radius:14px; padding:16px 20px; margin-top:24px; font-size:0.85rem; color:#64748B;">
+            <div style="font-weight:700; color:#92400E; margin-bottom:4px; display:flex; align-items:center; gap:6px;">
+                <i class='bx bx-info-circle'></i> Info Integrasi Midtrans Live / Sandbox
+            </div>
+            Tombol di atas saat ini menjalankan <em>Mode Simulasi Pengujian</em>. Untuk memunculkan popup pembayaran langsung <strong>Midtrans Snap</strong> (QRIS asli, VA Bank resmi), silakan masukkan Server Key & Client Key dari Dashboard Midtrans Sandbox ke dalam file <code>.env</code>.
+        </div>
+        {% endif %}
+
+        <p style="text-align: center; margin: 26px 0 0;">
+            <a href="{% url 'menu' %}" style="color: #254E06; font-weight: 700; text-decoration: none; font-size: 0.95rem;">
+                &larr; Batalkan dan Kembali ke Katalog Menu
+            </a>
+        </p>
+    </div>
+</div>
+
+{% if snap_token and midtrans_client_key %}
+    {% if midtrans_is_production %}
+        <script src="https://app.midtrans.com/snap/snap.js" data-client-key="{{ midtrans_client_key }}"></script>
+    {% else %}
+        <script src="https://app.sandbox.midtrans.com/snap/snap.js" data-client-key="{{ midtrans_client_key }}"></script>
+    {% endif %}
+{% endif %}
+
+<script>
+    function selectMethod(method) {
+        // Hapus active class dari semua kartu
+        document.querySelectorAll('.method-option-card').forEach(function(card) {
+            card.classList.remove('active');
+        });
+        // Tambahkan active class ke kartu yang dipilih
+        const target = document.getElementById('card-' + method);
+        if (target) {
+            target.classList.add('active');
+        }
+    }
+
+    function toggleItemDetails() {
+        const box = document.getElementById('itemsDetailBox');
+        if (box.style.display === 'none' || box.style.display === '') {
+            box.style.display = 'block';
+        } else {
+            box.style.display = 'none';
+        }
+    }
+
+    function triggerSnapPayment() {
+        {% if snap_token %}
+        window.snap.pay('{{ snap_token|escapejs }}', {
+            onSuccess: function (result) {
+                window.location.href = "{% url 'order_success' order.order_number %}";
+            },
+            onPending: function (result) {
+                window.location.href = "{% url 'order_success' order.order_number %}";
+            },
+            onError: function (result) {
+                alert('Pembayaran belum berhasil. Silakan coba kembali.');
+            },
+            onClose: function () {
+                // Pengguna menutup popup Snap
+            }
+        });
+        {% else %}
+        alert('Sesi Snap belum aktif. Silakan gunakan mode simulasi atau isi kredensial Midtrans di file .env.');
+        {% endif %}
+    }
+</script>
+{% endblock %}
