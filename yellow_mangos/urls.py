@@ -33,6 +33,8 @@ urlpatterns = [
     # Autentikasi Pengguna & Admin
     path('login/', views.custom_login_view, name='login'),
     path('logout/', views.custom_logout_view, name='logout'),
+    path('auth/google/', views.google_login_view, name='google_login'),
+    path('auth/google/callback/', views.google_login_callback_view, name='google_login_callback'),
     path('custom-admin-login/', views.custom_admin_login, name='custom_admin_login'),
 
     # Legalitas & Informasi

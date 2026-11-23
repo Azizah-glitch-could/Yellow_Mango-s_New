@@ -1,5 +1,6 @@
 import uuid
 import urllib.parse
+import urllib.request
 import csv
 import hashlib
 import hmac
@@ -9,6 +10,7 @@ from decimal import Decimal, InvalidOperation
 
 import midtransclient
 from django.shortcuts import render, redirect, get_object_or_404
+from django.urls import reverse
 from django.contrib.auth import authenticate, login, logout, update_session_auth_hash
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
@@ -761,6 +763,138 @@ def custom_login_view(request):
         'mode': default_mode,
         'next': next_url,
     })
+
+
+def google_login_view(request):
+    """
+    Mengarahkan pengguna ke Google OAuth2 Authorization endpoint.
+    """
+    client_id = getattr(settings, 'GOOGLE_CLIENT_ID', '')
+    if not client_id:
+        messages.warning(
+            request,
+            "Integrasi Google Login sedang disiapkan. Harap atur GOOGLE_CLIENT_ID dan GOOGLE_CLIENT_SECRET di file .env atau Vercel."
+        )
+        return redirect('login')
+
+    next_url = request.GET.get('next') or request.META.get('HTTP_REFERER') or '/'
+    request.session['google_auth_next'] = next_url
+
+    redirect_uri = request.build_absolute_uri(reverse('google_login_callback'))
+    if request.is_secure() or getattr(settings, 'VERCEL', False) or os.getenv('VERCEL') == '1':
+        redirect_uri = redirect_uri.replace('http://', 'https://')
+
+    params = {
+        'client_id': client_id,
+        'redirect_uri': redirect_uri,
+        'response_type': 'code',
+        'scope': 'openid email profile',
+        'access_type': 'online',
+        'prompt': 'select_account',
+    }
+    auth_url = f"https://accounts.google.com/o/oauth2/v2/auth?{urllib.parse.urlencode(params)}"
+    return redirect(auth_url)
+
+
+def google_login_callback_view(request):
+    """
+    Menerima authorization code dari Google OAuth, menukarkannya dengan token,
+    mengambil data profil akun Google, lalu membuat / login user Django.
+    """
+    code = request.GET.get('code')
+    error = request.GET.get('error')
+
+    if error or not code:
+        messages.error(request, 'Proses masuk dengan Google dibatalkan atau terjadi kesalahan.')
+        return redirect('login')
+
+    client_id = getattr(settings, 'GOOGLE_CLIENT_ID', '')
+    client_secret = getattr(settings, 'GOOGLE_CLIENT_SECRET', '')
+    redirect_uri = request.build_absolute_uri(reverse('google_login_callback'))
+    if request.is_secure() or getattr(settings, 'VERCEL', False) or os.getenv('VERCEL') == '1':
+        redirect_uri = redirect_uri.replace('http://', 'https://')
+
+    # Tukar authorization code dengan access token
+    token_url = 'https://oauth2.googleapis.com/token'
+    token_payload = urllib.parse.urlencode({
+        'code': code,
+        'client_id': client_id,
+        'client_secret': client_secret,
+        'redirect_uri': redirect_uri,
+        'grant_type': 'authorization_code',
+    }).encode('utf-8')
+
+    try:
+        req = urllib.request.Request(token_url, data=token_payload, method='POST')
+        req.add_header('Content-Type', 'application/x-www-form-urlencoded')
+        with urllib.request.urlopen(req, timeout=10) as response:
+            token_res = json.loads(response.read().decode('utf-8'))
+            access_token = token_res.get('access_token')
+
+        if not access_token:
+            messages.error(request, 'Gagal mendapatkan token autentikasi dari Google.')
+            return redirect('login')
+
+        # Ambil data profil dari Google UserInfo endpoint
+        userinfo_url = 'https://www.googleapis.com/oauth2/v3/userinfo'
+        user_req = urllib.request.Request(userinfo_url)
+        user_req.add_header('Authorization', f'Bearer {access_token}')
+        with urllib.request.urlopen(user_req, timeout=10) as user_res:
+            user_data = json.loads(user_res.read().decode('utf-8'))
+
+    except Exception as e:
+        messages.error(request, f'Gagal menghubungi server Google: {str(e)}')
+        return redirect('login')
+
+    email = user_data.get('email', '').strip().lower()
+    given_name = user_data.get('given_name') or user_data.get('name', 'Pelanggan')
+    family_name = user_data.get('family_name', '')
+
+    if not email:
+        messages.error(request, 'Akun Google tidak menyediakan alamat email yang valid.')
+        return redirect('login')
+
+    # Cari user berdasarkan email atau buat akun baru
+    user = User.objects.filter(email__iexact=email).first()
+    if not user:
+        base_username = email.split('@')[0]
+        username = base_username
+        counter = 1
+        while User.objects.filter(username=username).exists():
+            username = f"{base_username}_{counter}"
+            counter += 1
+
+        user = User.objects.create_user(
+            username=username,
+            email=email,
+            first_name=given_name,
+            last_name=family_name
+        )
+        user.set_unusable_password()
+        user.save()
+    else:
+        if not user.first_name and given_name:
+            user.first_name = given_name
+            user.save()
+
+    UserProfile.objects.get_or_create(user=user)
+
+    # Login pengguna
+    login(request, user, backend='django.contrib.auth.backends.ModelBackend')
+
+    ActivityLog.objects.create(
+        user=user,
+        action=f"Pengguna masuk menggunakan Akun Google: {email}",
+        category="Autentikasi"
+    )
+    messages.success(request, f"Halo {user.first_name or user.username}! Anda berhasil masuk dengan akun Google.")
+
+    next_url = request.session.pop('google_auth_next', None) or 'index'
+    if (user.is_staff or user.is_superuser) and next_url in ('index', '/', ''):
+        return redirect('admin_dashboard')
+    if next_url and next_url != 'index':
+        return redirect(next_url)
+    return redirect('index')
 
 
 def custom_admin_login(request):
